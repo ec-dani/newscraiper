@@ -1,0 +1,11 @@
+fastapi
+playwright
+pymongo
+uvicorn
+celery
+flower
+redis
+crawl4ai
+asgiref
+langchain
+langchain-ollama
