@@ -7,7 +7,7 @@ NewScrAIper is a state-of-the-art application, using the latest technologies, su
 
 - [Langchain](https://www.langchain.com): an open-source framework designed to build apps powered by LLMs.
 - [Ollama](https://ollama.com): a locally deployed AI model runner, allowing us to use LLMs easily on our computer.
-- [Crawl49](https://github.com/unclecode/crawl4ai): an open-source crawler that creates easy-to-read inputs for the LLM.
+- [Crawl4ai](https://github.com/unclecode/crawl4ai): an open-source crawler that creates easy-to-read inputs for the LLM.
 
 Other well-known technologies:
 
