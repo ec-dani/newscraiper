@@ -2,7 +2,7 @@
 
 A (MVP) web application to extract data from articles from different digital newspapers using an LLM.
 You can schedule a task selecting the period and the url. The task will be executed at 10pm UTC time 
-> Note:
+
 NewScrAIper is a state-of-the-art application, using the latest technologies, such as:
 
 - [Langchain](https://www.langchain.com): an open-source framework designed to build apps powered by LLMs.
@@ -31,7 +31,7 @@ git clone https://github.com/ec-dani/newsscraiper.git
 
 First, check the creation of the LLM instance. In this case, we are using the model `llama3:8B`.
 
-Go to the `get_llm()` function in the [`mapping.py`] file and change the model you want to use.  
+Go to the `get_llm()` function in the `mapping.py` file and change the model you want to use.  
 > Note: The model must already be pulled using Ollama.
 
 ### 2. Check the Database Connection
