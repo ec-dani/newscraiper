@@ -32,7 +32,7 @@ You are an expert web scraper. I want you to analyze the following text written 
 
 def get_llm():
     print("Using Ollama LLM")
-    llm = ChatOllama(base_url="http://192.168.1.52:11434",model = "llama3:8b",temperature = 0, format='json',verbose=True)
+    llm = ChatOllama(model = "llama3:8b",temperature = 0, format='json',verbose=True)
     return llm
 
 def map_news_extractor(splits, task_name ):
