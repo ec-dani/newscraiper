@@ -49,4 +49,4 @@ docker-compose up --build
 ```
 
 
-Now you have the app ready! 🙌
+Now you have the app running at http://localhost:8501/! 🙌
