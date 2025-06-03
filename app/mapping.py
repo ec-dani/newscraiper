@@ -30,38 +30,25 @@ You are an expert web scraper. I want you to analyze the following text written 
          JUST RETURN THE JSON DATA WITHOUT ANY ADDITIONAL TEXT OR EXPLANATION.
 """
 
-reduce_prompt = """
-You are an expert data consolidator. Merge the following extracted news article JSON data into a comprehensive list. 
-
-Ensure:
-- No duplicate entries
-- Preserve the original order of articles
-- If multiple extractions have similar data, keep the most complete one
-
-Return the final list of news article extractions as a JSON array WITHOUT ANY ADDITIONAL TEXT OR EXPLANATION.
-"""
-def create_map_reduce_news_extractor(splits ):
+def get_llm():
     print("Using Ollama LLM")
     llm = ChatOllama(base_url="http://192.168.1.52:11434",model = "llama3:8b",temperature = 0, format='json',verbose=True)
+    return llm
 
-    # Map Prompt for individual document extraction
+def map_news_extractor(splits, task_name ):
+    llm= get_llm()
     map_prompt_template = ChatPromptTemplate([
         ("system", map_prompt),
         ("human", "{text}")
     ])
-    # Create map chain
     map_chain = map_prompt_template | llm | JsonOutputParser()
 
-    # Create reduce chain
     mapped_results = []
     for i,split in enumerate(splits):
         try:
-            print(f"---------MAPING chunk {i}---------------")
+            print(f"---------MAPING chunk {i}; {task_name}---------------")
             result = map_chain.invoke({"text": split})
-            #Meter en BD
-            # with open("./data/elpais_map.json", "a",encoding='utf-8') as f:
-            #     f.write(json.dumps(result, ensure_ascii=False) + ",\n")
-            #     f.close()
+            result["task_name"] = task_name
             mapped_results.append(result)
             insert_article(result)
         except Exception as e:

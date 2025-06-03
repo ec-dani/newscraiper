@@ -9,3 +9,5 @@ crawl4ai
 asgiref
 langchain
 langchain-ollama
+celery-redbeat
+streamlit

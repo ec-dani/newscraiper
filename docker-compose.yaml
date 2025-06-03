@@ -1,0 +1,85 @@
+services:
+  fastapi:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: fastapi_app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+      - mongodb
+      - celery
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - MONGODB_URI=mongodb://mongodb:27017
+
+  streamlit:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: streamlit_frontend
+    ports:
+      - "8501:8501"
+    depends_on:
+      - fastapi
+      - redis
+      - mongodb
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - MONGODB_URI=mongodb://mongodb:27017
+      - FASTAPI_URL=http://fastapi:8000
+    command: streamlit run stl.py --server.address=0.0.0.0 --server.port=8501
+
+  celery:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: celery_worker
+    depends_on:
+      - redis
+      - mongodb
+    command: celery -A celery_task worker --loglevel=info
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - MONGODB_URI=mongodb://mongodb:27017
+
+  celery-beat:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: celery_beat
+    depends_on:
+      - redis
+      - celery
+    command: celery -A celery_task beat -S redbeat.RedBeatScheduler --loglevel=info
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - CELERY_REDBEAT_URL=redis://redis:6379/1
+      - MONGODB_URI=mongodb://mongodb:27017
+
+
+
+  redis:
+    image: redis:6.2
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      -redis_data:/data
+
+  mongodb:
+    image: mongo:5.0
+    container_name: mongodb
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
+  redis_data:

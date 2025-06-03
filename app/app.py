@@ -1,12 +1,14 @@
 import asyncio
 from typing import Dict
 from crawl4ai import AsyncWebCrawler
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
 from celery.result import AsyncResult
 from celery import current_app
+from datetime import datetime, timedelta,date
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 
-from celery_task import crawl_task
+from celery_task import celery_schedule_task, get_scheduled_tasks,delete_scheduled_task
+from mongodb import get_task_articles
 
 
 app = FastAPI(
@@ -27,22 +29,47 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
-    return {"message": "Bienvenido a News Analyzer API"}
+    return {"message": "NewsScrAIper API"}
 
-
-
-@app.get("/crawl_async_with")
-async def crawl_aw(url):
+@app.post("/schedule/add_task")
+async def schedule_task(url: str, start_date: date, end_date: date):
     try:
-        task = crawl_task.delay(url)
+        if start_date > end_date:
+            raise HTTPException(status_code=400, detail="Start date must be prior to the end date.")
         
-        return {
-            "task_id": task.id,
-            "status": "pending"
-        }
+        if start_date < datetime.now().date():
+            raise HTTPException(status_code=400, detail="start date must be prior to the current date.")
+        # print("VOY PA CELERY")
+        task= celery_schedule_task(url, start_date, end_date)
+        return task
+    
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/schedule/list_tasks")
+async def list_scheduled_tasks():
+    try:
+        tasks= get_scheduled_tasks()
+        return tasks
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/schedule/get_task_result/{task_name}")
+async def get_task_result(task_name: str):
+    try:
+        result = get_task_articles(task_name)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/schedule/cancel_task/{task_name}")
+async def cancel_task(task_name: str):
+    try:
+        task_result = delete_scheduled_task(task_name)
+        return task_result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
 @app.get("/task/{task_id}")
 async def get_task_status(task_id: str):
     try:
@@ -59,7 +86,7 @@ async def get_task_status(task_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/all_tasks_id")
+@app.get("/task/all_tasks_id")
 async def get_all_tasks_id():
     try:
         i = current_app.control.inspect()
@@ -79,10 +106,10 @@ async def get_all_tasks_id():
         return list(task_ids)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
-@app.get("/cancel_task/{task_id}")
+
+@app.delete("/task/cancel_task/{task_id}")
 async def cancel_task(task_id: str):
-    try:
+    try: 
         task_result = AsyncResult(task_id)
         if task_result.state == 'SUCCESS':
             return {"status": "Task already completed or not found"}
